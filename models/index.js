@@ -6,6 +6,8 @@ const Stock = require('./Stock');
 const Customer = require('./Customer');
 const Sale = require('./Sale');
 const Expense = require('./Expense');
+const AiLog = require('./AiLog');
+const SubscriptionPlan = require('./SubscriptionPlan');
 
 // Define Relationships
 // User has many Suppliers
@@ -40,6 +42,14 @@ Sale.belongsTo(Customer, { foreignKey: 'customerId' });
 User.hasMany(Expense, { foreignKey: 'userId' });
 Expense.belongsTo(User, { foreignKey: 'userId' });
 
+// User has many AiLogs
+User.hasMany(AiLog, { foreignKey: 'userId' });
+AiLog.belongsTo(User, { foreignKey: 'userId' });
+
+// SubscriptionPlan has many Users
+SubscriptionPlan.hasMany(User, { foreignKey: 'subscriptionPlanId' });
+User.belongsTo(SubscriptionPlan, { foreignKey: 'subscriptionPlanId' });
+
 // Export models
 module.exports = {
   sequelize,
@@ -49,5 +59,7 @@ module.exports = {
   Stock,
   Customer,
   Sale,
-  Expense
+  Expense,
+  AiLog,
+  SubscriptionPlan
 };

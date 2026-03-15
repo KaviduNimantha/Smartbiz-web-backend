@@ -1,4 +1,4 @@
-const { User } = require('../models');
+const { User, Sale, Product, AiLog } = require('../models');
 
 // Get all registered business owners
 const getAllUsers = async (req, res) => {
@@ -63,8 +63,53 @@ const toggleUserStatus = async (req, res) => {
   }
 };
 
+// Get System-Wide Statistics
+const getSystemStats = async (req, res) => {
+  try {
+    const totalUsers = await User.count({ where: { role: 'OWNER' } });
+    const totalSalesQuantity = await Sale.sum('quantity') || 0;
+    const totalRevenue = await Sale.sum('totalPrice') || 0;
+    const totalProducts = await Product.count();
+    const totalAiQueries = await AiLog.count();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalUsers,
+        totalSalesQuantity,
+        totalRevenue,
+        totalProducts,
+        totalAiQueries
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching system stats:', error);
+    res.status(500).json({ success: false, message: 'Server error fetching system stats' });
+  }
+};
+
+// Get AI Usage Logs
+const getAiLogs = async (req, res) => {
+  try {
+    const logs = await AiLog.findAll({
+      include: [{
+        model: User,
+        attributes: ['businessName', 'email']
+      }],
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.status(200).json({ success: true, data: logs });
+  } catch (error) {
+    console.error('Error fetching AI logs:', error);
+    res.status(500).json({ success: false, message: 'Server error fetching AI logs' });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUserProfile,
   toggleUserStatus,
+  getSystemStats,
+  getAiLogs,
 };

@@ -1,5 +1,5 @@
 const { OpenAI } = require('openai');
-const { Sale, Expense, Product } = require('../models');
+const { Sale, Expense, Product, AiLog } = require('../models');
 
 // Initialize OpenAI connection
 const openai = new OpenAI({
@@ -53,6 +53,8 @@ const generateReport = async (req, res) => {
       temperature: 0.7,
     });
 
+    await AiLog.create({ userId: req.user.id, featureType: 'INSIGHTS', prompt });
+
     res.status(200).json({ success: true, data: response.choices[0].message.content });
   } catch (error) {
     console.error('AI Insights Error:', error);
@@ -74,6 +76,8 @@ const generateEmail = async (req, res) => {
       ],
       temperature: 0.7,
     });
+
+    await AiLog.create({ userId: req.user.id, featureType: 'EMAIL', prompt });
 
     res.status(200).json({ success: true, data: response.choices[0].message.content });
   } catch (error) {
@@ -97,6 +101,8 @@ const generatePost = async (req, res) => {
       temperature: 0.8,
     });
 
+    await AiLog.create({ userId: req.user.id, featureType: 'POST', prompt });
+
     res.status(200).json({ success: true, data: response.choices[0].message.content });
   } catch (error) {
     console.error('AI Post Error:', error);
@@ -110,14 +116,18 @@ const summarizeInvoice = async (req, res) => {
     const { invoiceData } = req.body;
     if (!invoiceData) return res.status(400).json({ success: false, message: 'invoiceData is required' });
 
+    const promptText = `Invoice Data:\n${JSON.stringify(invoiceData)}`;
+
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         { role: "system", content: "You are a helpful customer service representative. The user will provide raw invoice/receipt data. Explain the charges simply and politely in a way the end customer would easily understand." },
-        { role: "user", content: `Invoice Data:\n${JSON.stringify(invoiceData)}` }
+        { role: "user", content: promptText }
       ],
       temperature: 0.5,
     });
+
+    await AiLog.create({ userId: req.user.id, featureType: 'INVOICE', prompt: 'Summarized Invoice' });
 
     res.status(200).json({ success: true, data: response.choices[0].message.content });
   } catch (error) {

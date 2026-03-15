@@ -35,6 +35,10 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+  subscriptionPlanId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
 }, {
   timestamps: true,
 });
